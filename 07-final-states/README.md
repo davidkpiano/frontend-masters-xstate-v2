@@ -7,3 +7,6 @@
 - Know how to implement final states with XState, including "done data"
 - Know how final states work with compound states and "done" transitions
 - Know how final states work with parallel states and "done" transitions
+
+## Exercises
+1. Add a final state to the `song` region that signifies that the song is done playing

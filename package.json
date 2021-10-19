@@ -1,0 +1,16 @@
+{
+  "name": "frontend-masters-xstate-v2",
+  "version": "0.0.0",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "serve": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "^2.6.4"
+  },
+  "dependencies": {
+    "@xstate/inspect": "^0.5.0",
+    "xstate": "^4.25.0"
+  }
+}

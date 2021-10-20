@@ -1,8 +1,101 @@
+*,
+*:before,
+*:after {
+  position: relative;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  display: grid;
+  grid-template-rows: auto auto;
+  grid-template-areas: 'time' 'controls';
+  width: max-content;
+}
+
+#button-like {
+  background-image: url(/icons/heart-regular.svg);
+}
+
+#button-like[data-like-status='liked'] {
+  background-image: url(/icons/heart-solid.svg);
+}
+
+#button-dislike {
+  background-image: url(/icons/thumbs-down-solid.svg);
+}
+
+#button-play {
+  background-image: url(/icons/play-solid.svg);
+}
+
+#button-pause {
+  background-image: url(/icons/pause-solid.svg);
+}
+
+#button-skip {
+  background-image: url(/icons/step-forward-solid.svg);
+}
+
+#button-loading {
+  background-image: url(/icons/spinner-third-duotone.svg);
+  background-color: transparent;
+  animation: spin 0.5s linear infinite;
+}
+
+#scrubber {
+  flex-grow: 1;
+}
+
+output {
+  width: 5rem;
   text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0turn);
+  }
+  to {
+    transform: rotate(1turn);
+  }
+}
+
+button {
+  appearance: none;
+  border: none;
+  height: 5vw;
+  width: 5vw;
+  background-size: 70%;
+  background-color: transparent;
+  background-repeat: no-repeat;
+  background-position: center center;
+}
+
+.time {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+  justify-content: stretch;
+}
+
+.controls {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  margin: 0 5vw;
 }

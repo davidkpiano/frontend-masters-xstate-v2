@@ -7,14 +7,22 @@
     <title>Vite App</title>
   </head>
   <body>
-    <div id="app"></div>
-    <div class="app">
-      <output id="time"></output>
-      <button id="button-like">Like</button>
-      <button id="button-unlike">Unlike</button>
-      <button id="button-play">Play</button>
-      <button id="button-pause">Pause</button>
-      <button id="button-skip">Skip</button>
+    <div id="app">
+      <div class="time">
+        <output id="elapsed"></output>
+        <input type="range" name="" id="scrubber" min="0" max="0" />
+        <output id="duration"></output>
+      </div>
+      <div class="controls">
+        <button id="button-like"></button>
+        <button id="button-dislike"></button>
+        <button id="button-play"></button>
+        <button id="button-pause"></button>
+        <button id="button-loading"></button>
+        <button id="button-skip"></button>
+        <button id="button-mute">unmuted</button>
+        <button id="button-unmute">muted</button>
+      </div>
     </div>
     <script type="module" src="./main.js"></script>
   </body>

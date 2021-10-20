@@ -1,11 +1,51 @@
-import './style.css';
-import { createMachine, assign, interpret, sendParent, send } from 'xstate';
+// @ts-check
+import '../style.css';
+import { createMachine, assign, interpret, send } from 'xstate';
 
 const elPlayButton = document.querySelector('#button-play');
 const elPauseButton = document.querySelector('#button-pause');
 const elSkipButton = document.querySelector('#button-skip');
 const elLikeButton = document.querySelector('#button-like');
-const elTime = document.querySelector('#time');
+const elDislikeButton = document.querySelector('#button-dislike');
+const elLoadingButton = document.querySelector('#button-loading');
+const elScrubberInput = document.querySelector('#scrubber');
+const elMuteButton = document.querySelector('#button-mute');
+const elUnmuteButton = document.querySelector('#button-unmute');
+const elElapsedButton = document.querySelector('#elapsed');
+const elDurationButton = document.querySelector('#duration');
+
+function createFakeAudio(duration) {
+  let currentTime = 0;
+  let interval;
+  const observers = new Set();
+
+  const notify = () => {
+    observers.forEach((o) => o());
+  };
+
+  return {
+    addEventListener: (event, fn) => {
+      observers.add(fn);
+      fn();
+    },
+    play: () => {
+      interval = setInterval(() => {
+        currentTime++;
+        notify();
+      }, 1000);
+    },
+    pause: () => {
+      clearInterval(interval);
+      notify();
+    },
+    get duration() {
+      return duration;
+    },
+    get currentTime() {
+      return currentTime;
+    },
+  };
+}
 
 function loadSong() {
   return new Promise((res, rej) => {
@@ -15,121 +55,203 @@ function loadSong() {
   });
 }
 
+function getCurrentSong(context) {
+  return context.playlist[context.songIndex];
+}
+
+const invokeAudio = (ctx) => (sendBack, receive) => {
+  const audio = createFakeAudio(getCurrentSong(ctx).duration);
+
+  audio.addEventListener('timeupdate', () => {
+    console.log(audio);
+    sendBack({
+      type: 'timeUpdate',
+      duration: parseInt(audio.duration),
+      currentTime: parseInt(audio.currentTime),
+    });
+  });
+
+  receive((event) => {
+    switch (event.type) {
+      case 'PLAY':
+        audio.play();
+        break;
+      case 'PAUSE':
+        audio.pause();
+        break;
+      default:
+        break;
+    }
+  });
+};
+
+const assignNextSong = assign({
+  elapsed: 0,
+  songIndex: (ctx) => (ctx.songIndex + 1) % ctx.playlist.length,
+});
+
 const songMachine = createMachine({
-  initial: 'loading',
   context: {
-    duration: 100,
+    playlist: [
+      { title: 'Song 1', duration: 5, likeStatus: 'unknown' },
+      { title: 'Song 2', duration: 10, likeStatus: 'unknown' },
+      { title: 'Song 3', duration: 15, likeStatus: 'unknown' },
+    ],
+    songIndex: 0,
     elapsed: 0,
     likeStatus: 'unknown', // or 'liked' or 'disliked'
   },
+  type: 'parallel',
   states: {
-    loading: {
-      invoke: {
-        src: () => loadSong(),
-        onDone: 'ready.hist',
-      },
-    },
-    ready: {
-      invoke: {
-        src: (ctx) => (sendBack, receive) => {
-          let c = 0;
-          setInterval(() => {
-            c++;
-            sendBack({ type: 'timeUpdate', currentTime: c });
-          }, 1000);
-        },
-      },
-      initial: 'paused',
+    player: {
+      initial: 'loading',
       states: {
-        paused: {
-          on: {
-            PLAY: 'playing',
+        loading: {
+          tags: 'loading',
+          invoke: {
+            id: 'songLoader',
+            src: loadSong,
+            onDone: 'ready.hist',
           },
         },
-        playing: {
-          on: {
-            timeUpdate: {
-              actions: assign({
-                elapsed: (_, e) => e.currentTime,
-              }),
+        ready: {
+          invoke: {
+            id: 'audio',
+            src: invokeAudio,
+          },
+          initial: 'paused',
+          states: {
+            paused: {
+              on: {
+                PLAY: 'playing',
+              },
             },
-            PAUSE: 'paused',
+            playing: {
+              entry: send({ type: 'PLAY' }, { to: 'audio' }),
+              exit: send({ type: 'PAUSE' }, { to: 'audio' }),
+              on: {
+                timeUpdate: {
+                  actions: assign({
+                    elapsed: (_, e) => e.currentTime,
+                  }),
+                },
+                PAUSE: 'paused',
+              },
+            },
+            hist: {
+              type: 'history',
+            },
+          },
+          always: {
+            cond: (ctx) => ctx.elapsed >= getCurrentSong(ctx).duration,
+            target: 'finished',
           },
         },
-        hist: {
-          type: 'history',
+        finished: {
+          type: 'final',
+        },
+      },
+      on: {
+        SKIP: {
+          actions: assignNextSong,
+          target: '.loading',
+        },
+      },
+      onDone: {
+        cond: (ctx) => ctx.elapsed >= getCurrentSong(ctx).duration,
+        actions: assignNextSong,
+        target: '.',
+      },
+    },
+    volume: {
+      initial: 'unmuted',
+      states: {
+        unmuted: {
+          on: {
+            MUTE: 'muted',
+          },
+        },
+        muted: {
+          on: {
+            UNMUTE: 'unmuted',
+          },
         },
       },
     },
   },
   on: {
-    SKIP: {
-      actions: sendParent({ type: 'SKIP' }),
-    },
-    CHANGE_SONG: {
-      target: '.loading',
+    'LIKE.TOGGLE': {
       actions: assign({
-        duration: () => Math.floor(Math.random() * 10),
-        elapsed: 0,
+        playlist: (ctx) => {
+          return ctx.playlist.map((song, i) => {
+            if (i !== ctx.songIndex) {
+              return song;
+            }
+            return {
+              ...song,
+              likeStatus: song.likeStatus === 'unknown' ? 'liked' : 'unknown',
+            };
+          });
+        },
       }),
     },
-    LIKE: {
-      actions: assign({
-        likeStatus: 'liked',
-      }),
+    DISLIKE: {
+      actions: [
+        assign({
+          playlist: (ctx) => {
+            return ctx.playlist.map((song, i) => {
+              if (i !== ctx.songIndex) {
+                return song;
+              }
+              return { ...song, likeStatus: 'disliked' };
+            });
+          },
+        }),
+        send('SKIP'),
+      ],
     },
   },
 });
 
-const albumMachine = createMachine({
-  context: {
-    index: 0,
-    songs: [
-      { title: 'Song 1', duration: 180 },
-      { title: 'Song 2', duration: 280 },
-      { title: 'Song 3', duration: 380 },
-    ],
-  },
-  invoke: {
-    id: 'song',
-    src: songMachine,
-  },
-  on: {
-    SKIP: {
-      actions: send({ type: 'CHANGE_SONG' }, { to: 'song' }),
-    },
-  },
+const service = interpret(songMachine).start();
+
+elPlayButton.addEventListener('click', () => {
+  service.send({ type: 'PLAY' });
 });
-
-const service = interpret(albumMachine).start();
-
-let songSub;
-
+elPauseButton.addEventListener('click', () => {
+  service.send({ type: 'PAUSE' });
+});
+elSkipButton.addEventListener('click', () => {
+  service.send({ type: 'SKIP' });
+});
+elLikeButton.addEventListener('click', () => {
+  service.send({ type: 'LIKE.TOGGLE' });
+});
+elDislikeButton.addEventListener('click', () => {
+  service.send({ type: 'DISLIKE' });
+});
+elMuteButton.addEventListener('click', () => {
+  service.send({ type: 'MUTE' });
+});
+elUnmuteButton.addEventListener('click', () => {
+  service.send({ type: 'UNMUTE' });
+});
+elScrubberInput.addEventListener('change', (e) => {
+  console.log(e.target.valueAsNumber);
+});
 service.subscribe((state) => {
-  if (state.children.song && !songSub) {
-    elPlayButton.addEventListener('click', () => {
-      state.children.song.send({ type: 'PLAY' });
-    });
-    elPauseButton.addEventListener('click', () => {
-      state.children.song.send({ type: 'PAUSE' });
-    });
-    elSkipButton.addEventListener('click', () => {
-      state.children.song.send({ type: 'SKIP' });
-    });
-    elLikeButton.addEventListener('click', () => {
-      state.children.song.send({ type: 'LIKE' });
-    });
-    songSub = state.children.song.subscribe((state) => {
-      console.log(state.event, state.value);
+  console.log(state.event, state.value, state.context);
 
-      elPlayButton.hidden = !state.can({ type: 'PLAY' });
-      elPauseButton.hidden = !state.can({ type: 'PAUSE' });
-      elTime.innerHTML = `${state.context.elapsed} / ${state.context.duration}`;
-    });
-  }
+  elLoadingButton.hidden = !state.hasTag('loading');
+  elPlayButton.hidden = !state.can({ type: 'PLAY' });
+  elPauseButton.hidden = !state.can({ type: 'PAUSE' });
+  elMuteButton.hidden = !state.can({ type: 'MUTE' });
+  elUnmuteButton.hidden = !state.can({ type: 'UNMUTE' });
+
+  elScrubberInput.setAttribute('max', getCurrentSong(state.context).duration);
+  elScrubberInput.value = state.context.elapsed;
+  elElapsedButton.innerHTML = `${state.context.elapsed}`;
+  elDurationButton.innerHTML = `${getCurrentSong(state.context).duration}`;
+
+  elLikeButton.dataset.likeStatus = getCurrentSong(state.context).likeStatus;
 });
-
-document.querySelector('#app').innerHTML = `
-  <h1>Testing</h1>
-  <a href="https://vitejs.dev/guide/features.html" target="_blank">Documentation</a>
-`;

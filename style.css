@@ -15,6 +15,10 @@ body {
   align-items: center;
 }
 
+html {
+  background-color: #131313;
+}
+
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -23,6 +27,10 @@ body {
   grid-template-columns: auto auto;
   grid-template-areas: 'time' 'controls';
   width: max-content;
+  padding: 2rem 3rem;
+  border-radius: 0.25rem;
+  background-color: #fefefe;
+  color: #111;
 }
 
 #button-like {
@@ -101,17 +109,18 @@ button {
 
 .song {
   display: grid;
-  grid-template-rows: auto auto auto;
+  grid-template-rows: auto auto 3rem;
+  align-items: center;
   grid-template-columns: auto auto;
   grid-template-areas:
     'title title'
     'artist artist'
     'scrubber elapsed';
-  row-gap: 0.5rem;
 }
 
 .song > .title {
   font-size: 120%;
+  font-weight: bold;
   grid-area: title;
 }
 
@@ -132,6 +141,6 @@ button {
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  margin: 0 5vw;
-  column-gap: 1vw;
+  margin: 0 3vw;
+  column-gap: 3vw;
 }

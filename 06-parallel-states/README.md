@@ -1,3 +1,5 @@
+# 06. Parallel states
+
 ## Goals
 
 - Understand utility of separation of concerns and broadcast communication in a single statechart

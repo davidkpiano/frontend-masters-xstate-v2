@@ -1,3 +1,5 @@
+# 00. Modeling
+
 ## Goals
 
 - Understand what software modeling is
@@ -23,6 +25,7 @@ Let's build a media player. It will have the following functionality:
 3. What are all the possible behaviors (states) of the app?
 4. How can these states change? (due to which events?)
 
-Let's model the loading, play, and pause functionality of the media player for now.
+Let's model the **loading**, **play**, and **pause** functionality of the media player for now.
 
-1. Model these states and transitions as a finite state machine, using a switch statement or an object.
+1. Model these states and transitions as a finite state machine, creating a transition function that uses a `switch` statement or an object
+2. "Interpret" that machine in a way that creates an object that you can `.send(...)` events to. The object should hold internal state determined by the transition function created.

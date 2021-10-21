@@ -8,10 +8,11 @@
   </head>
   <body>
     <div id="app">
-      <div class="time">
+      <div class="song">
+        <div class="title"><em>Song Title</em></div>
+        <div class="artist"><em>Artist</em></div>
+        <input type="range" id="scrubber" min="0" max="0" />
         <output id="elapsed"></output>
-        <input type="range" name="" id="scrubber" min="0" max="0" />
-        <output id="duration"></output>
       </div>
       <div class="controls">
         <button id="button-like"></button>
@@ -20,8 +21,7 @@
         <button id="button-pause"></button>
         <button id="button-loading"></button>
         <button id="button-skip"></button>
-        <button id="button-mute">unmuted</button>
-        <button id="button-unmute">muted</button>
+        <button id="button-volume"></button>
       </div>
     </div>
     <script type="module" src="./main.js"></script>

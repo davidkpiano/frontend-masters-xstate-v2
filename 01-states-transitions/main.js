@@ -1,14 +1,37 @@
+// @ts-check
 import '../style.css';
-import { createMachine, interpret } from 'xstate';
+import { createMachine, assign, interpret, send } from 'xstate';
 import elements from '../utils/elements';
 
+import { inspect } from '@xstate/inspect';
+
+// inspect({
+//   iframe: false,
+//   url: 'https://stately.ai/viz?inspect',
+// });
+
 const playerMachine = createMachine({
-  // Add initial state key
-  // Add all states
+  initial: 'loading',
+  states: {
+    loading: {
+      on: {
+        LOADED: { target: 'playing' },
+      },
+    },
+    paused: {
+      on: {
+        PLAY: { target: 'playing' },
+      },
+    },
+    playing: {
+      on: {
+        PAUSE: { target: 'paused' },
+      },
+    },
+  },
 });
 
-const service = interpret(playerMachine).start();
-window.service = service;
+const service = interpret(playerMachine, { devTools: true }).start();
 
 elements.elPlayButton.addEventListener('click', () => {
   service.send({ type: 'PLAY' });
@@ -23,3 +46,5 @@ service.subscribe((state) => {
   elements.elPlayButton.hidden = !state.can({ type: 'PLAY' });
   elements.elPauseButton.hidden = !state.can({ type: 'PAUSE' });
 });
+
+service.send({ type: 'LOADED' });

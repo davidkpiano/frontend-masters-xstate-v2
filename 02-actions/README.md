@@ -1,3 +1,5 @@
+# 02. Actions
+
 ## Goals
 
 - Know what actions are (fire-and-forget effects)

@@ -1,3 +1,5 @@
+# 04. Guards
+
 ## Goals
 
 - Know what guarded transitions ("guards") are and when they should be used (rather than different events)

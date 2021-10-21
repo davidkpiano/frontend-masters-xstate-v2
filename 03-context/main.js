@@ -1,23 +1,18 @@
 // @ts-check
 import '../style.css';
-import { createMachine, assign, interpret } from 'xstate';
-import { raise } from 'xstate/lib/actions';
+import { createMachine, assign, interpret, send } from 'xstate';
 import elements from '../utils/elements';
+import { raise } from 'xstate/lib/actions';
 import { formatTime } from '../utils/formatTime';
 
 const playerMachine = createMachine({
   initial: 'loading',
   context: {
-    title: undefined,
-    artist: undefined,
-    duration: 0,
-    elapsed: 0,
-    likeStatus: 'unliked', // or 'liked' or 'disliked'
-    volume: 5,
+    // Add initial context here for:
+    // title, artist, duration, elapsed, likeStatus, volume
   },
   states: {
     loading: {
-      tags: ['loading'],
       on: {
         LOADED: {
           actions: 'assignSongData',
@@ -36,10 +31,6 @@ const playerMachine = createMachine({
       on: {
         PAUSE: { target: 'paused' },
       },
-      always: {
-        cond: (ctx) => ctx.elapsed >= ctx.duration,
-        target: 'paused',
-      },
     },
   },
   on: {
@@ -56,18 +47,7 @@ const playerMachine = createMachine({
     DISLIKE: {
       actions: ['dislikeSong', raise('SKIP')],
     },
-    'LIKE.TOGGLE': [
-      {
-        cond: (ctx) => ctx.likeStatus === 'liked',
-        actions: raise('UNLIKE'),
-      },
-      {
-        cond: (ctx) => ctx.likeStatus === 'unliked',
-        actions: raise('LIKE'),
-      },
-    ],
     VOLUME: {
-      cond: 'volumeWithinRange',
       actions: 'assignVolume',
     },
     'AUDIO.TIME': {
@@ -77,37 +57,48 @@ const playerMachine = createMachine({
 }).withConfig({
   actions: {
     assignSongData: assign({
-      title: (_, e) => e.data.title,
-      artist: (_, e) => e.data.artist,
-      duration: (ctx, e) => e.data.duration,
-      elapsed: 0,
-      likeStatus: 'unliked',
+      // Assign the `title`, `artist`, and `duration` from the event.
+      // Assume the event looks like this:
+      // {
+      //   type: 'LOADED',
+      //   data: {
+      //     title: 'Some title',
+      //     artist: 'Some artist',
+      //     duration: 123
+      //   }
+      // }
+      // Also, reset the `elapsed` and `likeStatus` values.
     }),
     likeSong: assign({
-      likeStatus: 'liked',
+      // Assign the `likeStatus` to "liked"
     }),
     unlikeSong: assign({
-      likeStatus: 'unliked',
+      // Assign the `likeStatus` to 'unliked',
     }),
     dislikeSong: assign({
-      likeStatus: 'disliked',
+      // Assign the `likeStatus` to 'disliked',
     }),
     assignVolume: assign({
-      volume: (_, e) => e.level,
+      // Assign the `volume` to the `level` from the event.
+      // Assume the event looks like this:
+      // {
+      //   type: 'VOLUME',
+      //   level: 5
+      // }
     }),
     assignTime: assign({
-      elapsed: (_, e) => e.currentTime,
+      // Assign the `elapsed` value to the `currentTime` from the event.
+      // Assume the event looks like this:
+      // {
+      //   type: 'AUDIO.TIME',
+      //   currentTime: 10
+      // }
     }),
     skipSong: () => {
       console.log('Skipping song');
     },
     playAudio: () => {},
     pauseAudio: () => {},
-  },
-  guards: {
-    volumeWithinRange: (_, e) => {
-      return e.level <= 10 && e.level >= 0;
-    },
   },
 });
 

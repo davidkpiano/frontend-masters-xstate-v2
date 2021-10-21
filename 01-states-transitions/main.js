@@ -1,30 +1,14 @@
-// @ts-check
 import '../style.css';
-import { createMachine, assign, interpret, send } from 'xstate';
+import { createMachine, interpret } from 'xstate';
 import elements from '../utils/elements';
 
 const playerMachine = createMachine({
-  initial: 'loading',
-  states: {
-    loading: {
-      on: {
-        LOADED: { target: 'playing' },
-      },
-    },
-    paused: {
-      on: {
-        PLAY: { target: 'playing' },
-      },
-    },
-    playing: {
-      on: {
-        PAUSE: { target: 'paused' },
-      },
-    },
-  },
+  // Add initial state key
+  // Add all states
 });
 
 const service = interpret(playerMachine).start();
+window.service = service;
 
 elements.elPlayButton.addEventListener('click', () => {
   service.send({ type: 'PLAY' });
@@ -39,5 +23,3 @@ service.subscribe((state) => {
   elements.elPlayButton.hidden = !state.can({ type: 'PLAY' });
   elements.elPauseButton.hidden = !state.can({ type: 'PAUSE' });
 });
-
-service.send({ type: 'LOADED' });

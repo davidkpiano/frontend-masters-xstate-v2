@@ -7,6 +7,7 @@ import { raise } from 'xstate/lib/actions';
 import { formatTime } from '../utils/formatTime';
 
 const playerMachine = createMachine({
+  initial: 'loading',
   context: {
     title: undefined,
     artist: undefined,
@@ -15,88 +16,60 @@ const playerMachine = createMachine({
     likeStatus: 'unliked', // or 'liked' or 'disliked'
     volume: 5,
   },
-  type: 'parallel',
   states: {
-    player: {
-      initial: 'loading',
-      states: {
-        loading: {
-          id: 'loading',
-          tags: ['loading'],
-          on: {
-            LOADED: {
-              actions: 'assignSongData',
-              target: 'ready',
-            },
-          },
-        },
-        ready: {
-          initial: 'playing',
-          states: {
-            paused: {
-              on: {
-                PLAY: { target: 'playing' },
-              },
-            },
-            playing: {
-              entry: 'playAudio',
-              exit: 'pauseAudio',
-              on: {
-                PAUSE: { target: 'paused' },
-              },
-            },
-          },
-          always: {
-            cond: (ctx) => ctx.elapsed >= ctx.duration,
-            target: 'finished',
-          },
-        },
-        finished: {
-          type: 'final',
-        },
-      },
-      onDone: {
-        target: '.loading',
-      },
+    loading: {
+      tags: ['loading'],
+      id: 'loading',
       on: {
-        SKIP: {
-          actions: 'skipSong',
-          target: '#loading',
-        },
-        LIKE: {
-          actions: 'likeSong',
-        },
-        UNLIKE: {
-          actions: 'unlikeSong',
-        },
-        DISLIKE: {
-          actions: ['dislikeSong', raise('SKIP')],
-        },
-        'AUDIO.TIME': {
-          actions: 'assignTime',
+        LOADED: {
+          actions: 'assignSongData',
+          // Make this go to a 'ready' state instead
+          target: 'paused',
         },
       },
     },
-    volume: {
-      initial: 'unmuted',
-      states: {
-        unmuted: {
-          on: {
-            'VOLUME.TOGGLE': 'muted',
-          },
-        },
-        muted: {
-          on: {
-            'VOLUME.TOGGLE': 'unmuted',
-          },
-        },
-      },
+    // Refactor the 'paused' and 'playing' states so that
+    // they are children of the 'ready' state.
+    // Don't forget to add an initial state!
+    paused: {
       on: {
-        VOLUME: {
-          cond: 'volumeWithinRange',
-          actions: 'assignVolume',
-        },
+        PLAY: { target: 'playing' },
       },
+    },
+    playing: {
+      entry: 'playAudio',
+      exit: 'pauseAudio',
+      on: {
+        PAUSE: { target: 'paused' },
+      },
+      always: {
+        cond: (ctx) => ctx.elapsed >= ctx.duration,
+        // We changed this to an ID so that it can target
+        // the loading state at any position
+        target: '#loading',
+      },
+    },
+  },
+  on: {
+    SKIP: {
+      actions: 'skipSong',
+      target: 'loading',
+    },
+    LIKE: {
+      actions: 'likeSong',
+    },
+    UNLIKE: {
+      actions: 'unlikeSong',
+    },
+    DISLIKE: {
+      actions: ['dislikeSong', raise('SKIP')],
+    },
+    VOLUME: {
+      cond: 'volumeWithinRange',
+      actions: 'assignVolume',
+    },
+    'AUDIO.TIME': {
+      actions: 'assignTime',
     },
   },
 }).withConfig({
@@ -154,9 +127,6 @@ elements.elLikeButton.addEventListener('click', () => {
 elements.elDislikeButton.addEventListener('click', () => {
   service.send({ type: 'DISLIKE' });
 });
-elements.elVolumeButton.addEventListener('click', () => {
-  service.send({ type: 'VOLUME.TOGGLE' });
-});
 
 service.subscribe((state) => {
   console.log(state.value, state.context);
@@ -173,9 +143,6 @@ service.subscribe((state) => {
       : context.volume >= 8
       ? 'high'
       : undefined;
-  elements.elVolumeButton.dataset.status = state.matches({ volume: 'muted' })
-    ? 'muted'
-    : undefined;
 
   elements.elScrubberInput.setAttribute('max', context.duration);
   elements.elScrubberInput.value = context.elapsed;

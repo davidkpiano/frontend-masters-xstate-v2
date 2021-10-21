@@ -70,7 +70,7 @@ function loadSong() {
     setTimeout(() => {
       res({
         title: `Random Song #${songCounter++}`,
-        artist: `Machine Learning Probably`,
+        artist: `Random Group`,
         duration: Math.floor(Math.random() * 100),
       });
     }, 1000);
@@ -276,6 +276,6 @@ service.subscribe((state) => {
   );
 
   elements.elLikeButton.dataset.likeStatus = context.likeStatus;
-  elements.elArtist.innerHTML = context.artist;
-  elements.elTitle.innerHTML = context.title;
+  elements.elArtist.innerHTML = context.artist || '--';
+  elements.elTitle.innerHTML = context.title || '--';
 });

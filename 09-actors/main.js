@@ -1,12 +1,84 @@
 // @ts-check
 import '../style.css';
 import { createMachine, assign, interpret, send } from 'xstate';
-
-import elements from '../utils/elements';
 import { raise } from 'xstate/lib/actions';
 import { formatTime } from '../utils/formatTime';
 
+import elements from '../utils/elements';
+
+function createFakeAudio(duration) {
+  let currentTime = 0;
+  let interval;
+  const observers = new Set();
+
+  const notify = () => {
+    observers.forEach((o) => o());
+  };
+
+  return {
+    addEventListener: (event, fn) => {
+      observers.add(fn);
+      fn();
+    },
+    play: () => {
+      interval = setInterval(() => {
+        currentTime++;
+        notify();
+      }, 1000);
+    },
+    pause: () => {
+      clearInterval(interval);
+      notify();
+    },
+    get duration() {
+      return duration;
+    },
+    get currentTime() {
+      return currentTime;
+    },
+  };
+}
+
+const invokeAudio = (ctx) => (sendBack, receive) => {
+  const audio = createFakeAudio(ctx.duration);
+
+  audio.addEventListener('timeupdate', () => {
+    sendBack({
+      type: 'AUDIO.TIME',
+      duration: parseInt(audio.duration),
+      currentTime: parseInt(audio.currentTime),
+    });
+  });
+
+  receive((event) => {
+    switch (event.type) {
+      case 'PLAY':
+        audio.play();
+        break;
+      case 'PAUSE':
+        audio.pause();
+        break;
+      default:
+        break;
+    }
+  });
+};
+
+let songCounter = 0;
+function loadSong() {
+  return new Promise((res, rej) => {
+    setTimeout(() => {
+      res({
+        title: `Random Song #${songCounter++}`,
+        artist: `Random Group`,
+        duration: Math.floor(Math.random() * 100),
+      });
+    }, 1000);
+  });
+}
+
 const playerMachine = createMachine({
+  initial: 'loading',
   context: {
     title: undefined,
     artist: undefined,
@@ -21,17 +93,18 @@ const playerMachine = createMachine({
       initial: 'loading',
       states: {
         loading: {
-          id: 'loading',
           tags: ['loading'],
-          on: {
-            LOADED: {
-              actions: 'assignSongData',
-              target: 'ready',
-            },
-          },
+          // Instead of an external LOADED event,
+          // invoke a promise that returns the song.
+          // You can use the ready-made `loadSong` function.
+          // Add an `onDone` transition to assign the song data
+          // and transition to 'ready.hist'
         },
         ready: {
-          initial: 'playing',
+          // Invoke the audio callback (use `src: invokeAudio`)
+          // Make sure to give this invocation an ID of 'audio'
+          // so that it can receive events that this machine sends it
+          initial: 'paused',
           states: {
             paused: {
               on: {
@@ -44,6 +117,9 @@ const playerMachine = createMachine({
               on: {
                 PAUSE: { target: 'paused' },
               },
+            },
+            hist: {
+              type: 'history',
             },
           },
           always: {
@@ -60,8 +136,7 @@ const playerMachine = createMachine({
       },
       on: {
         SKIP: {
-          actions: 'skipSong',
-          target: '#loading',
+          target: '.loading',
         },
         LIKE: {
           actions: 'likeSong',
@@ -72,6 +147,16 @@ const playerMachine = createMachine({
         DISLIKE: {
           actions: ['dislikeSong', raise('SKIP')],
         },
+        'LIKE.TOGGLE': [
+          {
+            cond: (ctx) => ctx.likeStatus === 'liked',
+            actions: raise('UNLIKE'),
+          },
+          {
+            cond: (ctx) => ctx.likeStatus === 'unliked',
+            actions: raise('LIKE'),
+          },
+        ],
         'AUDIO.TIME': {
           actions: 'assignTime',
         },
@@ -126,8 +211,9 @@ const playerMachine = createMachine({
     skipSong: () => {
       console.log('Skipping song');
     },
-    playAudio: () => {},
-    pauseAudio: () => {},
+    // These actions will now send events to that invoked audio actor
+    playAudio: send({ type: 'PLAY' }, { to: 'audio' }),
+    pauseAudio: send({ type: 'PAUSE' }, { to: 'audio' }),
   },
   guards: {
     volumeWithinRange: (_, e) => {
@@ -149,7 +235,7 @@ elements.elSkipButton.addEventListener('click', () => {
   service.send({ type: 'SKIP' });
 });
 elements.elLikeButton.addEventListener('click', () => {
-  service.send({ type: 'LIKE' });
+  service.send({ type: 'LIKE.TOGGLE' });
 });
 elements.elDislikeButton.addEventListener('click', () => {
   service.send({ type: 'DISLIKE' });
@@ -157,9 +243,11 @@ elements.elDislikeButton.addEventListener('click', () => {
 elements.elVolumeButton.addEventListener('click', () => {
   service.send({ type: 'VOLUME.TOGGLE' });
 });
-
+elements.elScrubberInput.addEventListener('change', (e) => {
+  console.log(e.target.valueAsNumber);
+});
 service.subscribe((state) => {
-  console.log(state.value, state.context);
+  console.log(state.event, state.value, state.context);
   const { context } = state;
 
   elements.elLoadingButton.hidden = !state.hasTag('loading');
@@ -184,15 +272,6 @@ service.subscribe((state) => {
   );
 
   elements.elLikeButton.dataset.likeStatus = context.likeStatus;
-  elements.elArtist.innerHTML = context.artist;
-  elements.elTitle.innerHTML = context.title;
-});
-
-service.send({
-  type: 'LOADED',
-  data: {
-    title: 'Some song title',
-    artist: 'Some song artist',
-    duration: 100,
-  },
+  elements.elArtist.innerHTML = context.artist || '--';
+  elements.elTitle.innerHTML = context.title || '--';
 });

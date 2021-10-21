@@ -15,88 +15,84 @@ const playerMachine = createMachine({
     likeStatus: 'unliked', // or 'liked' or 'disliked'
     volume: 5,
   },
-  type: 'parallel',
+
+  // Refactor this so that there are two parallel regions:
+  // 'player' and 'volume'
+  // The resulting state value should look like:
+  // {
+  //   player: 'loading',
+  //   volume: 'muted'
+  // }
+  initial: 'loading',
   states: {
-    player: {
-      initial: 'loading',
-      states: {
-        loading: {
-          id: 'loading',
-          tags: ['loading'],
-          on: {
-            LOADED: {
-              actions: 'assignSongData',
-              target: 'ready',
-            },
-          },
-        },
-        ready: {
-          initial: 'playing',
-          states: {
-            paused: {
-              on: {
-                PLAY: { target: 'playing' },
-              },
-            },
-            playing: {
-              entry: 'playAudio',
-              exit: 'pauseAudio',
-              on: {
-                PAUSE: { target: 'paused' },
-              },
-            },
-          },
-          always: {
-            cond: (ctx) => ctx.elapsed >= ctx.duration,
-            target: 'finished',
-          },
-        },
-        finished: {
-          type: 'final',
-        },
-      },
-      onDone: {
-        target: '.loading',
-      },
+    // These states should be in a parent 'player' region
+    loading: {
+      id: 'loading',
+      tags: ['loading'],
       on: {
-        SKIP: {
-          actions: 'skipSong',
-          target: '#loading',
-        },
-        LIKE: {
-          actions: 'likeSong',
-        },
-        UNLIKE: {
-          actions: 'unlikeSong',
-        },
-        DISLIKE: {
-          actions: ['dislikeSong', raise('SKIP')],
-        },
-        'AUDIO.TIME': {
-          actions: 'assignTime',
+        LOADED: {
+          actions: 'assignSongData',
+          target: 'ready',
         },
       },
     },
-    volume: {
-      initial: 'unmuted',
+    ready: {
+      initial: 'playing',
       states: {
-        unmuted: {
+        paused: {
           on: {
-            'VOLUME.TOGGLE': 'muted',
+            PLAY: { target: 'playing' },
           },
         },
-        muted: {
+        playing: {
+          entry: 'playAudio',
+          exit: 'pauseAudio',
           on: {
-            'VOLUME.TOGGLE': 'unmuted',
+            PAUSE: { target: 'paused' },
+          },
+          always: {
+            cond: (ctx) => ctx.elapsed >= ctx.duration,
+            target: '#loading',
           },
         },
       },
+    },
+
+    // These states should be in a parent 'volume' region
+    unmuted: {
       on: {
-        VOLUME: {
-          cond: 'volumeWithinRange',
-          actions: 'assignVolume',
-        },
+        'VOLUME.TOGGLE': 'muted',
       },
+    },
+    muted: {
+      on: {
+        'VOLUME.TOGGLE': 'unmuted',
+      },
+    },
+  },
+  on: {
+    // These should belong to the 'player' region
+    SKIP: {
+      actions: 'skipSong',
+      target: '#loading',
+    },
+    LIKE: {
+      actions: 'likeSong',
+    },
+    UNLIKE: {
+      actions: 'unlikeSong',
+    },
+    DISLIKE: {
+      actions: ['dislikeSong', raise('SKIP')],
+    },
+    'AUDIO.TIME': {
+      actions: 'assignTime',
+    },
+
+    // This should belong to the 'volume' region
+    VOLUME: {
+      cond: 'volumeWithinRange',
+      actions: 'assignVolume',
     },
   },
 }).withConfig({

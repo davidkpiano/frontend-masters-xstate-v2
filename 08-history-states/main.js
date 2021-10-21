@@ -21,11 +21,13 @@ const playerMachine = createMachine({
       initial: 'loading',
       states: {
         loading: {
-          id: 'loading',
           tags: ['loading'],
           on: {
             LOADED: {
               actions: 'assignSongData',
+              // This will always go to the 'ready.playing' state
+              // Instead, go to the most recent child of the 'ready' state
+              // (Hint: target a history state!)
               target: 'ready',
             },
           },
@@ -45,6 +47,7 @@ const playerMachine = createMachine({
                 PAUSE: { target: 'paused' },
               },
             },
+            // Add a sibling history state here
           },
           always: {
             cond: (ctx) => ctx.elapsed >= ctx.duration,
@@ -61,7 +64,7 @@ const playerMachine = createMachine({
       on: {
         SKIP: {
           actions: 'skipSong',
-          target: '#loading',
+          target: '.loading',
         },
         LIKE: {
           actions: 'likeSong',

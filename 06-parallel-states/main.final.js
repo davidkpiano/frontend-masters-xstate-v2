@@ -22,6 +22,7 @@ const playerMachine = createMachine({
       states: {
         loading: {
           id: 'loading',
+          tags: ['loading'],
           on: {
             LOADED: {
               actions: 'assignSongData',

@@ -48,12 +48,12 @@ const playerMachine = createMachine({
           },
           always: {
             cond: (ctx) => ctx.elapsed >= ctx.duration,
-            target: 'finished',
+            // Instead of going to '#loading', this should go
+            // to a sibling 'finished' state
+            target: '#loading',
           },
         },
-        finished: {
-          type: 'final',
-        },
+        // Add a 'finished' final state here
       },
       onDone: {
         target: '.loading',

@@ -211,9 +211,11 @@ const playerMachine = createMachine({
     skipSong: () => {
       console.log('Skipping song');
     },
-    // These actions will now send events to that invoked audio actor
-    playAudio: send({ type: 'PLAY' }, { to: 'audio' }),
-    pauseAudio: send({ type: 'PAUSE' }, { to: 'audio' }),
+    // These actions should send events to that invoked audio actor:
+    // playAudio should send 'PLAY'
+    // pauseAudio should send 'PAUSE'
+    playAudio: () => {},
+    pauseAudio: () => {},
   },
   guards: {
     volumeWithinRange: (_, e) => {

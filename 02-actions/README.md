@@ -9,7 +9,6 @@
 
 ## Exercises
 
-1. Add entry and exit actions for the play state
-2. Add transition actions for liking and disliking a song
-3. Add a transition action for skipping an song
-4. Serialize these actions and provide their implementation in `.withConfig(...)`
+Add the missing actions to the machine. For now, these actions can just be empty functions or `console.log(...)` statements.
+
+You can start by putting the actions inline, and then add them inside `.withConfig` later.

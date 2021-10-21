@@ -12,5 +12,4 @@
 
 ## Exercises
 
-1. Invoke an actor for loading the song (invoke in `loading` state)
-2. Create a parent actor that invokes the song actor (the machine we've been working on) and is responsible for providing the next songs and keeping track of the songs
+Invoke actors for loading a song and playing the audio. Make the `playAudio` and `pauseAudio` actions actually send events to the invoked audio actor.

@@ -8,5 +8,4 @@
 
 ## Exercises
 
-- Add a parallel state for volume
-- Refactor the states so that the volume and media regions are separate
+Add a parallel state so that the `player` and `volume` are separate regions.

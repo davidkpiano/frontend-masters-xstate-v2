@@ -1,5 +1,12 @@
 # State Machines & XState Workshop
 
+Welcome to the [Frontend Masters](https://frontendmasters.com) workshop on **JavaScript State Machines and Statecharts with XState, v2**! In this workshop, we will be learning about software modeling with state machines and statecharts by building a real-world media player application.
+
+- GitHub repo: https://github.com/statelyai/xstate
+- Documentation: https://xstate.js.org/docs
+- Visualizer: https://stately.ai/viz
+- Community: https://discord.gg/xstate
+
 ## Getting Started
 
 1. Run `npm install` or `yarn install`

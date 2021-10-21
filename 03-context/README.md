@@ -8,5 +8,6 @@
 
 ## Exercises
 
-1. Add context for the song `duration`, `elapsed`, and `liked` (use an enum!)
-2. Add an action for scrubbing (assigning `elapsed`)
+Add the missing initial `context` values to the player machine.
+
+Then, use the `assign(...)` action creator to update the `context` via actions.

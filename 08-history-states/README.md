@@ -10,4 +10,4 @@
 
 ## Exercises
 
-1. If the song is in the `loading` state, when it's done loading, it should go to the most recent child state of the `ready` state (`playing` or `paused`). Model this with a history state.
+If the song is in the `loading` state, when it's done loading, it should go to the most recent child state of the `ready` state (`playing` or `paused`). Model this with a history state.

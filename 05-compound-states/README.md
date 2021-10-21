@@ -11,7 +11,4 @@
 
 ## Exercises
 
-1. Refactor: add a `loading` and `ready` state
-2. The `ready` state should be a parent state of the `playing` and `paused` states
-3. The `loading` state should be the initial state
-4. When going to the next song, transition to the `loading` state to load the next song
+Add the `paused` and `playing` states to a parent `ready` state.

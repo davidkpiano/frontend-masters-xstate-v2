@@ -11,4 +11,4 @@
 
 ## Exercises
 
-1. Add a final state to the `song` region that signifies that the song is done playing
+Add a `finished` final state so that the logic for the `player` state is more semantic, and so that the transitions can be more natural.

@@ -10,5 +10,6 @@
 
 ## Exercises
 
-1. Add volume controls and prevent the volume from going below 0 or above 10
-2. Add an `always` transition that goes to the next song when `elapsed` >= `duration`
+Add the missing guards to ensure the `volume` stays within range, and that sending the `'LIKE.TOGGLE'` event performs the right action.
+
+Then, add the missing eventless transition to the `playing` state.

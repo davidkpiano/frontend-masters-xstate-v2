@@ -1,5 +1,3 @@
-
-
 ## Goals
 
 - Understand what software modeling is
@@ -24,4 +22,7 @@ Let's build a media player. It will have the following functionality:
 2. Do these events exhibit the same behavior at all times? If not, what are the different behaviors?
 3. What are all the possible behaviors (states) of the app?
 4. How can these states change? (due to which events?)
-5. Model these states and transitions as a finite state machine, using a switch statement or an object.
+
+Let's model the loading, play, and pause functionality of the media player for now.
+
+1. Model these states and transitions as a finite state machine, using a switch statement or an object.

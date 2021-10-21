@@ -65,7 +65,7 @@ const invokeAudio = (ctx) => (sendBack, receive) => {
   audio.addEventListener('timeupdate', () => {
     console.log(audio);
     sendBack({
-      type: 'timeUpdate',
+      type: 'AUDIO.TIME',
       duration: parseInt(audio.duration),
       currentTime: parseInt(audio.currentTime),
     });
@@ -130,7 +130,7 @@ const songMachine = createMachine({
               entry: send({ type: 'PLAY' }, { to: 'audio' }),
               exit: send({ type: 'PAUSE' }, { to: 'audio' }),
               on: {
-                timeUpdate: {
+                'AUDIO.TIME': {
                   actions: assign({
                     elapsed: (_, e) => e.currentTime,
                   }),

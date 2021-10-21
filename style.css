@@ -20,7 +20,7 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   display: grid;
-  grid-template-rows: auto auto;
+  grid-template-columns: auto auto;
   grid-template-areas: 'time' 'controls';
   width: max-content;
 }
@@ -55,8 +55,23 @@ body {
   animation: spin 0.5s linear infinite;
 }
 
-#scrubber {
-  flex-grow: 1;
+#button-volume {
+  background-image: url(/icons/volume-solid.svg);
+}
+#button-volume[data-level='high'] {
+  background-image: url(/icons/volume-up-solid.svg);
+}
+
+#button-volume[data-level='low'] {
+  background-image: url(/icons/volume-down-solid.svg);
+}
+
+#button-volume[data-level='zero'] {
+  background-image: url(/icons/volume-off-solid.svg);
+}
+
+#button-volume[data-status='muted'] {
+  background-image: url(/icons/volume-mute-solid.svg);
 }
 
 output {
@@ -76,20 +91,40 @@ output {
 button {
   appearance: none;
   border: none;
-  height: 5vw;
-  width: 5vw;
+  height: 4vw;
+  width: 4vw;
   background-size: 70%;
   background-color: transparent;
   background-repeat: no-repeat;
   background-position: center center;
 }
 
-.time {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 0.5rem;
-  justify-content: stretch;
+.song {
+  display: grid;
+  grid-template-rows: auto auto auto;
+  grid-template-columns: auto auto;
+  grid-template-areas:
+    'title title'
+    'artist artist'
+    'scrubber elapsed';
+  row-gap: 0.5rem;
+}
+
+.song > .title {
+  font-size: 120%;
+  grid-area: title;
+}
+
+.song > .artist {
+  grid-area: artist;
+}
+
+.song > #scrubber {
+  grid-area: scrubber;
+}
+
+.song > #elapsed {
+  grid-area: elapsed;
 }
 
 .controls {
@@ -98,4 +133,5 @@ button {
   align-items: center;
   justify-content: center;
   margin: 0 5vw;
+  column-gap: 1vw;
 }

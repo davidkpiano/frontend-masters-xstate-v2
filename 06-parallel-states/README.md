@@ -6,5 +6,5 @@
 
 ## Exercises
 
-- Add a parallel state for like status
-- Refactor the states so that the like status and media regions are separate
+- Add a parallel state for volume
+- Refactor the states so that the volume and media regions are separate

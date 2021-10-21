@@ -13,16 +13,18 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
+  flex-direction: column;
+  font-family: Avenir, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 html {
   background-color: #131313;
+  color: white;
 }
 
 #app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
   display: grid;
   grid-template-columns: auto auto;
   grid-template-areas: 'time' 'controls';

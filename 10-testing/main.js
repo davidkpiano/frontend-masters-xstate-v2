@@ -3,14 +3,13 @@ import '../style.css';
 import { createMachine, assign, interpret, send } from 'xstate';
 import { raise } from 'xstate/lib/actions';
 import { inspect } from '@xstate/inspect';
-
-inspect({
-  iframe: false,
-  url: 'https://stately.ai/viz?inspect',
-});
 import { formatTime } from '../utils/formatTime';
-
 import elements from '../utils/elements';
+
+// inspect({
+//   iframe: false,
+//   url: 'https://stately.ai/viz?inspect',
+// });
 
 function createFakeAudio(duration) {
   let currentTime = 0;

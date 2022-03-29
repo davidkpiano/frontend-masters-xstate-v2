@@ -58,9 +58,6 @@ const playerMachine = createMachine({
     },
     skipSong: () => {
       console.log("Song skipped");
-      setTimeout(() => {
-        service.send({ type: "LOADED" });
-      }, 1000);
     },
     likeSong: () => {
       console.log("Song liked");
